@@ -1,0 +1,8 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Generated DXF files are reproducible from an input plan.
+# Existing committed snapshots under out/ remain tracked.
+out/*.generated.dxf
