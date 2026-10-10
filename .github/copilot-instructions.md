@@ -56,21 +56,107 @@ public record NewFunctionEvent(string Parameter1, int Parameter2) : IEvent
 }
 ```
 
+The event should:
+- Be defined as a record class for immutability and automatic property generation
+- Implement the `IEvent` interface
+- Have a `Type` property that returns its class name
+- Include any parameters needed for the operation
+
 ### Step 2: Create an Event Handler
 
-Add a new handler class in the `AutoCADMcpPlugin/Event` folder.
+Add a new handler class in the `AutoCADMcpPlugin/Event` folder:
+
+```csharp
+using AutoCadMcp.Model;
+using AutoCadMcp.Model.Event;
+using Autodesk.AutoCAD.ApplicationServices;
+
+namespace AutoCADMcpPlugin.Event;
+
+public class NewFunctionEventHandler : IEventHandler<NewFunctionEvent>
+{
+    public Task<string> HandleAsync(NewFunctionEvent @event)
+    {
+        // Implement the actual functionality in AutoCAD
+        Document doc = Application.DocumentManager.MdiActiveDocument;
+        
+        // Do something with doc and @event.Parameter1, @event.Parameter2
+        
+        return Task.FromResult("Operation completed successfully");
+    }
+}
+```
+
+The handler should:
+- Implement the `IEventHandler<TEvent>` interface for your specific event type
+- Contain the logic to execute the operation within AutoCAD
+- Return a Task<string> with a response message
 
 ### Step 3: Add a Tool Method to the MCP Server
 
-Add a method to the `AutoCadMcp/Program.cs` `AutoCadTool` class.
+Add a method to the `AutoCadTool` class in `AutoCadMcp/Program.cs`:
+
+```csharp
+[McpServerTool, Description("Description of what the new function does")]
+public static string NewFunction(string parameter1, int parameter2) => 
+    SendEvent(new NewFunctionEvent(parameter1, parameter2));
+```
+
+The tool method should:
+- Have the `[McpServerTool]` attribute
+- Include a description of what it does
+- Accept the parameters needed for the event
+- Call `SendEvent` with a new instance of your event
 
 ### Step 4: Build and Commit Changes
 
-Run `dotnet build` to verify changes. Keep commits focused and follow the repository's contribution conventions.
+When making changes to the codebase, follow these steps:
+
+1. Build the solution to verify your changes:
+```bash
+dotnet build
+```
+
+2. Fix any build errors if they occur and verify that the build succeeds
+
+3. Make your changes following the steps above
+
+4. Stage your changes:
+```bash
+git add .
+```
+
+5. Commit your changes with an emoji that represents the type of change:
+```bash
+git commit -m ":sparkles: Add new feature for XYZ"
+```
+
+Common emoji prefixes:
+- :sparkles: (sparkles): New feature
+- :bug: (bug): Bug fix
+- :memo: (memo): Documentation changes
+- :recycle: (recycle): Refactoring code
+- :art: (art): Improving structure/format of the code
+- :zap:️ (zap): Performance improvements
+- :wrench: (wrench): Configuration changes
+- :rotating_light: (rotating_light): Tests
+- :fire: (fire): Removing code/files
+
+6. Push your changes:
+```bash
+git push origin feature/your-feature-name
+```
+
+7. Create a pull request for review
 
 ## Event Registration
 
-The system automatically discovers and registers events and handlers through reflection in `EventConverter` and `EventBus`.
+The system automatically discovers and registers events and handlers:
+
+- `EventConverter` uses reflection to find all classes that implement `IEvent`
+- `EventBus` uses reflection to find all classes that implement `IEventHandler<>`
+
+As long as your events and handlers follow the naming conventions and implement the correct interfaces, they will be automatically registered.
 
 ## Debugging
 Use MCP Tool to debug the AutoCAD plugin.
@@ -82,3 +168,5 @@ Use MCP Tool to debug the AutoCAD plugin.
 3. Handle exceptions appropriately in handlers
 4. Return meaningful response messages
 5. Use AutoCAD's ApplicationServices, DatabaseServices, and other APIs as needed in handlers
+
+This documentation should help you understand how to extend the system.
